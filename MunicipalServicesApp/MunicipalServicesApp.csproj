@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>MunicipalServicesApp</RootNamespace>
+    <AssemblyName>MunicipalServicesApp</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ApplicationIcon />
+    <StartupObject>MunicipalServicesApp.Program</StartupObject>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Product>Municipal Services Application</Product>
+    <Company>South African Municipality</Company>
+    <Description>Part 1 municipal services desktop application for reporting citizen issues.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="Forms\MainMenuForm.Designer.cs">
+      <DependentUpon>MainMenuForm.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\ReportIssuesForm.Designer.cs">
+      <DependentUpon>ReportIssuesForm.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>
