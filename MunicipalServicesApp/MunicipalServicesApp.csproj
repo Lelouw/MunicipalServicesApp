@@ -10,11 +10,19 @@
     <ApplicationIcon />
     <StartupObject>MunicipalServicesApp.Program</StartupObject>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <Product>Municipal Services Application</Product>
-    <Company>South African Municipality</Company>
-    <Description>Part 1 municipal services desktop application for reporting citizen issues.</Description>
+    <Product>City of Jozi Municipal Services</Product>
+    <Company>City of Jozi</Company>
+    <Description>Part 1 municipal services desktop application for reporting citizen issues in City of Jozi.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Forms\IssueDetailsForm.Designer.cs">
+      <DependentUpon>IssueDetailsForm.cs</DependentUpon>
+    </Compile>
     <Compile Update="Forms\MainMenuForm.Designer.cs">
       <DependentUpon>MainMenuForm.cs</DependentUpon>
     </Compile>
