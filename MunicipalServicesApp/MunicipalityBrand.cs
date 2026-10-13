@@ -17,6 +17,9 @@ namespace MunicipalServicesApp
         public const string CommunityReportsHint =
             "All issues reported by residents across City of Jozi. Check here for updates on incidents around us.";
 
+        public const string EventsSubtitle =
+            "See what is happening in the city, and which notices need your attention first.";
+
         public static string WindowTitle(string section)
         {
             if (string.IsNullOrWhiteSpace(section))

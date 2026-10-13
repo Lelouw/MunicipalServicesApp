@@ -1,22 +1,41 @@
-# City of Jozi — Municipal Services (AAPD7112W Part 1)
+# City of Jozi — Municipal Services (AAPD7112W Part 2)
 
 **Slogan:** *Your city. Your voice. Better service for every Joburger.*
 
-C# .NET Framework **Windows Forms** application for **City of Jozi**. Part 1 implements **Report Issues**, a community reports list, and issue details. Local Events and Service Status appear on the main menu but stay disabled until Part 2.
+C# .NET Framework **Windows Forms** application for **City of Jozi**. Part 1 **Report Issues** stays in place. Part 2 adds **Local Events and Announcements**, with search, advanced data structures, and recommendations based on what you search for.
 
-If this repository is the app folder only, the Task 1 research document may live in the parent course folder: `../Task1_Research/AAPD7112W_Part1_Task1_Research.docx`.
+**Service Request Status** stays on the menu and is disabled until Task 3.
+
+If this repository is the app folder only, open `MunicipalServicesApp.sln` in this folder.
 
 ## Features
 
-- **City of Jozi branding** across the main menu, report form, and About dialog
-- **Report an issue** with location, category, description, and optional file attachment
-- **Live South African place suggestions** while typing a location (OpenStreetMap Nominatim; needs internet)
-- **Engagement progress bar** with encouraging messages as the form is completed
-- **Inline field validation** (no popup for missing location, category, or short description)
-- **Duplicate-report warning** when a similar open issue already exists
-- **Community reports** table with search, status filter, attachment column, and status badges
-- **Eye icon / double-click** to open full issue details (including attachment preview or open file)
-- **In-memory `List<IssueReport>`** storage via `IssueRepository` (Part 1 data-structure requirement)
+- **Report Issues** (Part 1): location suggestions, categories, description, optional attachment, progress bar, community reports, and issue details
+- **Local Events and Announcements** (Part 2):
+  - Upcoming events and announcements as cards, in date order
+  - **Priority notices** — urgent announcements first (priority queue)
+  - **Issued order** — the same announcements in the order they were published (queue)
+  - Search by keyword, category, and date
+  - **Recommended for you**, based on the categories, keywords, and dates you search
+  - **Recently viewed**, most recent first (stack)
+- In-memory storage for the current run. Closing the app clears new issue reports and search history. Sample events load again on the next start.
+
+## Data structures
+
+| Structure | Where it is used |
+| --- | --- |
+| `List<IssueReport>` | Part 1 community reports |
+| `SortedDictionary<DateTime, List<LocalEvent>>` | Events grouped by date. A date search stops once it passes the end date. |
+| `Dictionary<string, LocalEvent>` | Hash-table lookup of an event by its id |
+| `Dictionary<string, int>` | How often each category and keyword is searched |
+| `HashSet<string>` | Unique categories for the filter |
+| `HashSet<DateTime>` | Unique event dates, including the “no events on this day” message |
+| `Queue<LocalEvent>` | Announcements in the order they were issued |
+| `Queue<EventSearch>` | Recent searches, oldest first |
+| `Stack<string>` | Recently opened events, most recent on top |
+| `EventPriorityQueue` | Binary max-heap. .NET Framework 4.8 has no built-in priority queue, so urgent notices are ordered here. |
+
+Recommendations score each event from those search counts: same category, a related category, a keyword in the title or details, and dates just outside the range you searched. The reason is shown on each recommendation card.
 
 ## Requirements
 
@@ -49,20 +68,19 @@ Compiled executable:
 
 ## How to use the application
 
-1. The **main menu** opens on startup (City of Jozi header and community reports).
-2. Click **Report Issues**.
-3. Enter a **location** (type 3+ letters for place suggestions), choose a **category**, and write a **description** (at least 10 characters).
-4. Optionally click **Attach file** and select an image or document.
-5. Watch the **progress bar** update as you complete each step.
-6. Click **Submit**. After confirmation you return to the main menu; the new report appears in **Community reports**.
-7. Use search / status filters, or click the **eye** icon to view full details and the attachment.
-8. Use **Back to main menu** from the report form if you leave without submitting.
-
-**Local Events** and **Service Status** are disabled on purpose for Part 1.
-
-## Data handling
-
-Reports are stored in a **`List<IssueReport>`** inside `IssueRepository` (singleton). This matches the Part 1 data-structures requirement. Storage is **in memory for the current run** — closing the app clears newly submitted reports; sample seed data loads again on the next start. Attachment files are not copied into the app; only the file path is stored.
+1. The **main menu** opens on startup.
+2. **Report Issues** works as in Part 1. Submit a report and it appears under **Community reports**. Use the eye icon for full details.
+3. Click **Local Events** (the card or **Services → Local Events and Announcements**).
+4. Read **Priority notices** across the top. The most urgent notice is first. The side panel **Issued order** lists those same notices in the order they were published, which is not always the urgency order.
+5. Browse **Upcoming events**. Click a card for the full description.
+6. Search:
+   - Type a place, title, or word and click **Search** (or press Enter).
+   - Choose a **category**. The list is the unique set of categories on the calendar.
+   - Set **From** and **To**. Uncheck a date to ignore that end of the range. The default **From** is today, so past events stay hidden until you move that date back.
+7. After you search, **Recommended for you** updates. Each card says why it was suggested, for example “You searched Water” or “Related to Parks and Recreation”.
+8. Open a few events. They appear under **Recently viewed**, most recent first.
+9. **Clear** resets the filters only. It does not wipe the search history behind the recommendations.
+10. **Service Status** stays disabled until Task 3.
 
 ## Project structure
 
@@ -70,15 +88,16 @@ Reports are stored in a **`List<IssueReport>`** inside `IssueRepository` (single
 MunicipalServicesApp/
 ├── MunicipalServicesApp.sln
 └── MunicipalServicesApp/
-    ├── Forms/                 # MainMenu, ReportIssues, IssueDetails
-    ├── Models/                # IssueReport, LocationSuggestion
-    ├── Data/                  # IssueRepository (List storage)
-    ├── Services/              # Location search (Nominatim)
-    ├── MunicipalityBrand.cs   # City of Jozi name and slogan
+    ├── Forms/                 # Main menu, Report Issues, Local Events, details
+    ├── Models/                # IssueReport, LocalEvent, search and recommendation models
+    ├── Data/                  # IssueRepository, EventRepository
+    ├── DataStructures/        # EventPriorityQueue (binary heap)
+    ├── Services/              # Location search, event recommendations
+    ├── MunicipalityBrand.cs
     ├── UITheme.cs
     └── Program.cs
 ```
 
-## Part 2
+## Task 3
 
-Keep a copy of this project. Part 2 and the final PoE build on the same application (local events / announcements and service-request status).
+Keep a copy of this project. Service Request Status is the remaining main-menu item and is built in Task 3 on this same application.

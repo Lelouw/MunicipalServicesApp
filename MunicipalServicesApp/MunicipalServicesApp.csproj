@@ -12,7 +12,7 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <Product>City of Jozi Municipal Services</Product>
     <Company>City of Jozi</Company>
-    <Description>Part 1 municipal services desktop application for reporting citizen issues in City of Jozi.</Description>
+    <Description>Part 2 municipal services desktop application for City of Jozi. Report issues, and browse local events and announcements.</Description>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Configuration" />
@@ -20,8 +20,14 @@
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Forms\EventDetailsForm.Designer.cs">
+      <DependentUpon>EventDetailsForm.cs</DependentUpon>
+    </Compile>
     <Compile Update="Forms\IssueDetailsForm.Designer.cs">
       <DependentUpon>IssueDetailsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\LocalEventsForm.Designer.cs">
+      <DependentUpon>LocalEventsForm.cs</DependentUpon>
     </Compile>
     <Compile Update="Forms\MainMenuForm.Designer.cs">
       <DependentUpon>MainMenuForm.cs</DependentUpon>

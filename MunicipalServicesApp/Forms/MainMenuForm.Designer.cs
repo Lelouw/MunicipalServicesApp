@@ -94,9 +94,9 @@ namespace MunicipalServicesApp.Forms
             menuReportIssues.Text = "Report Issues";
             menuReportIssues.Click += BtnReportIssues_Click;
 
-            menuLocalEvents.Enabled = false;
             menuLocalEvents.Name = "menuLocalEvents";
             menuLocalEvents.Text = "Local Events and Announcements";
+            menuLocalEvents.Click += BtnLocalEvents_Click;
 
             menuServiceStatus.Enabled = false;
             menuServiceStatus.Name = "menuServiceStatus";
@@ -147,17 +147,23 @@ namespace MunicipalServicesApp.Forms
             lblWelcome.Text = MunicipalityBrand.WelcomeMessage;
 
             cardReportIssues = CreateServiceCard("Report Issues", '\uE7BA', true);
-            cardLocalEvents = CreateServiceCard("Local Events", '\uE787', false);
+            cardLocalEvents = CreateServiceCard("Local Events", '\uE787', true);
             cardServiceStatus = CreateServiceCard("Service Status", '\uE9D5', false);
 
             cardTooltips.SetToolTip(cardReportIssues, "Report Issues");
-            cardTooltips.SetToolTip(cardLocalEvents, "Local Events and Announcements — enabled in Part 2");
-            cardTooltips.SetToolTip(cardServiceStatus, "Service Request Status — enabled in Part 2");
+            cardTooltips.SetToolTip(cardLocalEvents, "Local Events and Announcements");
+            cardTooltips.SetToolTip(cardServiceStatus, "Service Request Status — added in Task 3");
 
             cardReportIssues.Click += BtnReportIssues_Click;
             foreach (Control child in cardReportIssues.Controls)
             {
                 child.Click += BtnReportIssues_Click;
+            }
+
+            cardLocalEvents.Click += BtnLocalEvents_Click;
+            foreach (Control child in cardLocalEvents.Controls)
+            {
+                child.Click += BtnLocalEvents_Click;
             }
 
             lblRequestsHeading.AutoSize = true;

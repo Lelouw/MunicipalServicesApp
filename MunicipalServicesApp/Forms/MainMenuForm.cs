@@ -65,6 +65,16 @@ namespace MunicipalServicesApp.Forms
             }
         }
 
+        private void BtnLocalEvents_Click(object sender, EventArgs e)
+        {
+            using (var eventsForm = new LocalEventsForm())
+            {
+                eventsForm.ShowDialog(this);
+            }
+
+            Activate();
+        }
+
         private void BtnExit_Click(object sender, EventArgs e)
         {
             Close();
@@ -77,7 +87,8 @@ namespace MunicipalServicesApp.Forms
                 MunicipalityBrand.Name + Environment.NewLine +
                 MunicipalityBrand.Slogan + Environment.NewLine + Environment.NewLine +
                 "Municipal Services Application" + Environment.NewLine +
-                "Part 1 — Report Issues" + Environment.NewLine + Environment.NewLine +
+                "Part 2 — Report Issues, and Local Events and Announcements" + Environment.NewLine +
+                "Service Request Status is added in Task 3." + Environment.NewLine + Environment.NewLine +
                 "Developed for the AAPD7112W PoE assignment.",
                 "About " + MunicipalityBrand.Name,
                 MessageBoxButtons.OK,
