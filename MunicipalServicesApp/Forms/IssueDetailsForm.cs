@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using MunicipalServicesApp.Models;
+using MunicipalServicesApp.Services;
 
 namespace MunicipalServicesApp.Forms
 {
@@ -33,7 +34,72 @@ namespace MunicipalServicesApp.Forms
             rtbDescription.Text = string.IsNullOrWhiteSpace(report.Description) ? "No description provided." : report.Description;
             lblStatus.Text = status;
             ApplyStatusColors(status);
+            HighlightStatusChoice(status);
             LoadAttachment();
+        }
+
+        private void BtnSetStatus_Click(object sender, EventArgs e)
+        {
+            var button = sender as Button;
+            if (button == null || button.Tag == null)
+            {
+                return;
+            }
+
+            if (!MunicipalDesk.TryOpen(this))
+            {
+                return;
+            }
+
+            string next = button.Tag.ToString();
+            string current = NormalizeStatus(report.Status);
+            if (string.Equals(current, next, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            DialogResult choice = MessageBox.Show(
+                this,
+                "Set " + FormatReference(report.RequestId) + " to " + next + "?",
+                "Update status",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+            if (choice != DialogResult.Yes)
+            {
+                return;
+            }
+
+            string message;
+            bool updated = IssueProgress.TryChange(report, next, out message);
+            MessageBox.Show(
+                this,
+                message,
+                "Update status",
+                MessageBoxButtons.OK,
+                updated ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+            if (updated)
+            {
+                BindReport();
+            }
+        }
+
+        private void HighlightStatusChoice(string status)
+        {
+            Highlight(btnPending, status);
+            Highlight(btnInProgress, status);
+            Highlight(btnResolved, status);
+        }
+
+        private static void Highlight(Button button, string status)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            bool selected = string.Equals(button.Tag as string, status, StringComparison.OrdinalIgnoreCase);
+            button.BackColor = selected ? UITheme.Navy : Color.White;
+            button.ForeColor = selected ? Color.White : UITheme.Navy;
         }
 
         private void LoadAttachment()
@@ -81,21 +147,11 @@ namespace MunicipalServicesApp.Forms
 
         private void ApplyStatusColors(string status)
         {
-            switch (status)
-            {
-                case "Resolved":
-                    lblStatus.BackColor = Color.FromArgb(219, 234, 254);
-                    lblStatus.ForeColor = Color.FromArgb(30, 64, 175);
-                    break;
-                case "Closed":
-                    lblStatus.BackColor = Color.FromArgb(229, 231, 235);
-                    lblStatus.ForeColor = Color.FromArgb(75, 85, 99);
-                    break;
-                default:
-                    lblStatus.BackColor = Color.FromArgb(254, 243, 199);
-                    lblStatus.ForeColor = Color.FromArgb(146, 64, 14);
-                    break;
-            }
+            Color backColor;
+            Color foreColor;
+            StatusBadge.Colors(status, out backColor, out foreColor);
+            lblStatus.BackColor = backColor;
+            lblStatus.ForeColor = foreColor;
         }
 
         private void BtnOpenAttachment_Click(object sender, EventArgs e)

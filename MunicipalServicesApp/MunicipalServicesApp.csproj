@@ -12,7 +12,7 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <Product>City of Jozi Municipal Services</Product>
     <Company>City of Jozi</Company>
-    <Description>Part 2 municipal services desktop application for City of Jozi. Report issues, and browse local events and announcements.</Description>
+    <Description>Municipal services desktop application for City of Jozi. Report issues, browse local events, and track service request status.</Description>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Configuration" />
@@ -34,6 +34,9 @@
     </Compile>
     <Compile Update="Forms\ReportIssuesForm.Designer.cs">
       <DependentUpon>ReportIssuesForm.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\ServiceRequestStatusForm.Designer.cs">
+      <DependentUpon>ServiceRequestStatusForm.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

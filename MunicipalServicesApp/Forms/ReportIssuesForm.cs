@@ -349,6 +349,7 @@ namespace MunicipalServicesApp.Forms
             };
 
             IssueRepository.Instance.Add(report);
+            MunicipalServicesApp.Services.NotificationCentre.Instance.FollowSubmittedReport(report);
             MessageBox.Show(
                 this,
                 "Thank you. Your issue has been submitted." + Environment.NewLine +
@@ -358,7 +359,7 @@ namespace MunicipalServicesApp.Forms
                 "Location: " + report.Location + Environment.NewLine +
                 "Category: " + report.Category + Environment.NewLine +
                 Environment.NewLine +
-                "You will now return to the main menu where community reports are listed.",
+                "Track this reference under Service Request Status. The bell on the main menu will tell you when it moves to In Progress or Resolved.",
                 "Report submitted",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);

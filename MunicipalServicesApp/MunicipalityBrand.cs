@@ -20,6 +20,9 @@ namespace MunicipalServicesApp
         public const string EventsSubtitle =
             "See what is happening in the city, and which notices need your attention first.";
 
+        public const string StatusSubtitle =
+            "Track a request by its reference, see what it is waiting on, and which depot will attend to it.";
+
         public static string WindowTitle(string section)
         {
             if (string.IsNullOrWhiteSpace(section))

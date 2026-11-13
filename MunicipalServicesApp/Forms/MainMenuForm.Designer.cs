@@ -11,6 +11,7 @@ namespace MunicipalServicesApp.Forms
         private ToolStripMenuItem menuReportIssues;
         private ToolStripMenuItem menuLocalEvents;
         private ToolStripMenuItem menuServiceStatus;
+        private ToolStripMenuItem menuMunicipalDesk;
         private ToolStripMenuItem menuExit;
         private ToolStripMenuItem helpMenu;
         private ToolStripMenuItem menuAbout;
@@ -28,6 +29,8 @@ namespace MunicipalServicesApp.Forms
         private TextBox txtSearch;
         private ListView lvRequests;
         private Label lblNoRequests;
+        private Button btnNotifications;
+        private Label lblNotificationBadge;
 
         protected override void Dispose(bool disposing)
         {
@@ -56,7 +59,10 @@ namespace MunicipalServicesApp.Forms
             menuReportIssues = new ToolStripMenuItem();
             menuLocalEvents = new ToolStripMenuItem();
             menuServiceStatus = new ToolStripMenuItem();
+            menuMunicipalDesk = new ToolStripMenuItem();
             menuExit = new ToolStripMenuItem();
+            btnNotifications = new Button();
+            lblNotificationBadge = new Label();
             helpMenu = new ToolStripMenuItem();
             menuAbout = new ToolStripMenuItem();
             pnlHeader = new Panel();
@@ -84,6 +90,7 @@ namespace MunicipalServicesApp.Forms
                 menuReportIssues,
                 menuLocalEvents,
                 menuServiceStatus,
+                menuMunicipalDesk,
                 new ToolStripSeparator(),
                 menuExit
             });
@@ -98,9 +105,13 @@ namespace MunicipalServicesApp.Forms
             menuLocalEvents.Text = "Local Events and Announcements";
             menuLocalEvents.Click += BtnLocalEvents_Click;
 
-            menuServiceStatus.Enabled = false;
             menuServiceStatus.Name = "menuServiceStatus";
             menuServiceStatus.Text = "Service Request Status";
+            menuServiceStatus.Click += BtnServiceStatus_Click;
+
+            menuMunicipalDesk.Name = "menuMunicipalDesk";
+            menuMunicipalDesk.Text = "Municipal desk";
+            menuMunicipalDesk.Click += MenuMunicipalDesk_Click;
 
             menuExit.Name = "menuExit";
             menuExit.Text = "Exit";
@@ -114,7 +125,33 @@ namespace MunicipalServicesApp.Forms
             menuAbout.Text = "About";
             menuAbout.Click += MenuAbout_Click;
 
+            btnNotifications.BackColor = UITheme.Navy;
+            btnNotifications.Cursor = Cursors.Hand;
+            btnNotifications.FlatAppearance.BorderColor = UITheme.Gold;
+            btnNotifications.FlatAppearance.BorderSize = 1;
+            btnNotifications.FlatStyle = FlatStyle.Flat;
+            btnNotifications.Font = new Font("Segoe MDL2 Assets", 16F);
+            btnNotifications.ForeColor = Color.White;
+            btnNotifications.Location = new Point(740, 28);
+            btnNotifications.Name = "btnNotifications";
+            btnNotifications.Size = new Size(44, 40);
+            btnNotifications.Text = "\uEA8F";
+            btnNotifications.UseVisualStyleBackColor = false;
+            btnNotifications.Click += BtnNotifications_Click;
+
+            lblNotificationBadge.BackColor = UITheme.Gold;
+            lblNotificationBadge.Font = new Font("Segoe UI", 7.5F, FontStyle.Bold);
+            lblNotificationBadge.ForeColor = UITheme.Navy;
+            lblNotificationBadge.Location = new Point(764, 26);
+            lblNotificationBadge.Name = "lblNotificationBadge";
+            lblNotificationBadge.Size = new Size(22, 16);
+            lblNotificationBadge.Text = "0";
+            lblNotificationBadge.TextAlign = ContentAlignment.MiddleCenter;
+            lblNotificationBadge.Visible = false;
+
             pnlHeader.BackColor = UITheme.Navy;
+            pnlHeader.Controls.Add(lblNotificationBadge);
+            pnlHeader.Controls.Add(btnNotifications);
             pnlHeader.Controls.Add(lblSubtitle);
             pnlHeader.Controls.Add(lblTitle);
             pnlHeader.Dock = DockStyle.Top;
@@ -148,11 +185,11 @@ namespace MunicipalServicesApp.Forms
 
             cardReportIssues = CreateServiceCard("Report Issues", '\uE7BA', true);
             cardLocalEvents = CreateServiceCard("Local Events", '\uE787', true);
-            cardServiceStatus = CreateServiceCard("Service Status", '\uE9D5', false);
+            cardServiceStatus = CreateServiceCard("Service Status", '\uE9D5', true);
 
             cardTooltips.SetToolTip(cardReportIssues, "Report Issues");
             cardTooltips.SetToolTip(cardLocalEvents, "Local Events and Announcements");
-            cardTooltips.SetToolTip(cardServiceStatus, "Service Request Status — added in Task 3");
+            cardTooltips.SetToolTip(cardServiceStatus, "Service Request Status");
 
             cardReportIssues.Click += BtnReportIssues_Click;
             foreach (Control child in cardReportIssues.Controls)
@@ -164,6 +201,12 @@ namespace MunicipalServicesApp.Forms
             foreach (Control child in cardLocalEvents.Controls)
             {
                 child.Click += BtnLocalEvents_Click;
+            }
+
+            cardServiceStatus.Click += BtnServiceStatus_Click;
+            foreach (Control child in cardServiceStatus.Controls)
+            {
+                child.Click += BtnServiceStatus_Click;
             }
 
             lblRequestsHeading.AutoSize = true;
@@ -192,7 +235,16 @@ namespace MunicipalServicesApp.Forms
             cmbStatusFilter.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbStatusFilter.Font = UITheme.BodyFont;
             cmbStatusFilter.FormattingEnabled = true;
-            cmbStatusFilter.Items.AddRange(new object[] { "All statuses", "Pending", "Resolved", "Closed" });
+            cmbStatusFilter.Items.AddRange(new object[]
+            {
+                "All statuses",
+                "Pending",
+                "Acknowledged",
+                "Assigned",
+                "In Progress",
+                "Resolved",
+                "Closed"
+            });
             cmbStatusFilter.Location = new Point(316, 314);
             cmbStatusFilter.Name = "cmbStatusFilter";
             cmbStatusFilter.Size = new Size(150, 25);

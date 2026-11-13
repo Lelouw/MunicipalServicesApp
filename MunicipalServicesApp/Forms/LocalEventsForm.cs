@@ -20,6 +20,7 @@ namespace MunicipalServicesApp.Forms
         private readonly EventRepository catalogue = EventRepository.Instance;
         private readonly EventRecommendationService recommendations;
         private readonly ToolTip tips = new ToolTip();
+        private Button btnPublish;
 
         private bool filtersReady;
         private int lastCardWidth;
@@ -29,6 +30,21 @@ namespace MunicipalServicesApp.Forms
         {
             InitializeComponent();
             recommendations = new EventRecommendationService(catalogue);
+            btnPublish = new Button
+            {
+                Text = "New announcement",
+                BackColor = Color.White,
+                ForeColor = UITheme.Navy,
+                FlatStyle = FlatStyle.Flat,
+                Font = UITheme.ButtonFont,
+                Cursor = Cursors.Hand,
+                Size = new Size(170, 36)
+            };
+            btnPublish.FlatAppearance.BorderSize = 0;
+            btnPublish.Click += BtnPublish_Click;
+            pnlHeader.Controls.Add(btnPublish);
+            tips.SetToolTip(btnPublish, "Sample notices are loaded at startup. This publishes another one from the municipal desk.");
+            lblSubtitle.Text = MunicipalityBrand.EventsSubtitle + " Sample notices load when the app starts.";
             tips.SetToolTip(btnClear, "Clears the filters. Search history for recommendations is kept.");
             tips.SetToolTip(dtpFrom, "Optional start of the date search. Uncheck to ignore it.");
             tips.SetToolTip(dtpTo, "Optional end of the date search. Uncheck to ignore it.");
@@ -99,6 +115,27 @@ namespace MunicipalServicesApp.Forms
         private void BtnBack_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void BtnPublish_Click(object sender, EventArgs e)
+        {
+            if (!MunicipalDesk.TryOpen(this))
+            {
+                return;
+            }
+
+            using (var publishForm = new PublishAnnouncementForm())
+            {
+                if (publishForm.ShowDialog(this) != DialogResult.OK)
+                {
+                    return;
+                }
+            }
+
+            LoadCategories();
+            BindPriorityNotices();
+            BindAnnouncementQueue();
+            ApplyFilters(recordKeyword: false, recordSelection: false);
         }
 
         private void BtnSearch_Click(object sender, EventArgs e)
@@ -278,6 +315,11 @@ namespace MunicipalServicesApp.Forms
             }
 
             btnBack.Location = new Point(pnlHeader.ClientSize.Width - btnBack.Width - 24, 26);
+            if (btnPublish != null)
+            {
+                btnPublish.Location = new Point(btnBack.Left - btnPublish.Width - 8, 26);
+                lblSubtitle.Width = Math.Max(200, btnPublish.Left - 36);
+            }
 
             int y = 16;
             int right = pnlFilters.ClientSize.Width - 16;

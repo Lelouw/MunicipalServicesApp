@@ -297,6 +297,57 @@ namespace MunicipalServicesApp.Data
             return string.Compare(left.Title, right.Title, StringComparison.OrdinalIgnoreCase);
         }
 
+        public LocalEvent Publish(LocalEvent item)
+        {
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
+            if (string.IsNullOrWhiteSpace(item.Title))
+            {
+                throw new ArgumentException("An announcement needs a title.", nameof(item));
+            }
+
+            if (string.IsNullOrWhiteSpace(item.Id))
+            {
+                item.Id = NextEventId();
+            }
+
+            if (string.IsNullOrWhiteSpace(item.Category))
+            {
+                item.Category = "Other";
+            }
+
+            if (item.StartDate == default(DateTime))
+            {
+                item.StartDate = DateTime.Today;
+            }
+
+            if (item.Priority < LocalEvent.PriorityLow)
+            {
+                item.Priority = LocalEvent.PriorityNormal;
+            }
+
+            Add(item);
+            return item;
+        }
+
+        private string NextEventId()
+        {
+            int highest = 0;
+            foreach (string id in eventsById.Keys)
+            {
+                int number;
+                if (RequestReference.TryParseNumber(id, out number) && number > highest)
+                {
+                    highest = number;
+                }
+            }
+
+            return "EVT-" + DateTime.Now.Year + "-" + (highest + 1).ToString("0000");
+        }
+
         private void Add(LocalEvent item)
         {
             eventsById.Add(item.Id, item);

@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows.Forms;
 using MunicipalServicesApp.Data;
 using MunicipalServicesApp.Models;
+using MunicipalServicesApp.Services;
 
 namespace MunicipalServicesApp.Forms
 {
@@ -19,6 +20,15 @@ namespace MunicipalServicesApp.Forms
             SetPlaceholder(txtSearch, SearchPlaceholder);
             LayoutCards();
             RefreshRequestsList();
+            cardTooltips.SetToolTip(btnNotifications, "Updates for reports you submitted or are watching.");
+            NotificationCentre.Instance.Changed += NotificationCentre_Changed;
+            UpdateNotificationBell();
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            NotificationCentre.Instance.Changed -= NotificationCentre_Changed;
+            base.OnFormClosed(e);
         }
 
         private void ConfigureRequestsTable()
@@ -75,6 +85,25 @@ namespace MunicipalServicesApp.Forms
             Activate();
         }
 
+        private void BtnServiceStatus_Click(object sender, EventArgs e)
+        {
+            using (var access = new ServiceAccessForm())
+            {
+                if (access.ShowDialog(this) != DialogResult.OK)
+                {
+                    return;
+                }
+
+                using (var statusForm = new ServiceRequestStatusForm(access.AsServiceDesk))
+                {
+                    statusForm.ShowDialog(this);
+                }
+            }
+
+            RefreshRequestsList();
+            Activate();
+        }
+
         private void BtnExit_Click(object sender, EventArgs e)
         {
             Close();
@@ -87,8 +116,7 @@ namespace MunicipalServicesApp.Forms
                 MunicipalityBrand.Name + Environment.NewLine +
                 MunicipalityBrand.Slogan + Environment.NewLine + Environment.NewLine +
                 "Municipal Services Application" + Environment.NewLine +
-                "Part 2 — Report Issues, and Local Events and Announcements" + Environment.NewLine +
-                "Service Request Status is added in Task 3." + Environment.NewLine + Environment.NewLine +
+                "Report Issues, Local Events and Announcements, and Service Request Status." + Environment.NewLine + Environment.NewLine +
                 "Developed for the AAPD7112W PoE assignment.",
                 "About " + MunicipalityBrand.Name,
                 MessageBoxButtons.OK,
@@ -183,6 +211,16 @@ namespace MunicipalServicesApp.Forms
                 cardReportIssues.Location = new Point(left, top);
                 cardLocalEvents.Location = new Point(left, top + cardHeight + 10);
                 cardServiceStatus.Location = new Point(left, top + (cardHeight + 10) * 2);
+            }
+
+            if (btnNotifications != null && pnlHeader != null)
+            {
+                btnNotifications.Location = new Point(pnlHeader.ClientSize.Width - 68, 28);
+                if (lblNotificationBadge != null)
+                {
+                    lblNotificationBadge.Location = new Point(btnNotifications.Left + 24, btnNotifications.Top - 2);
+                    lblNotificationBadge.BringToFront();
+                }
             }
 
             int listTop = Math.Max(264, cardServiceStatus.Bottom + 24);
@@ -438,6 +476,65 @@ namespace MunicipalServicesApp.Forms
             {
                 detailsForm.ShowDialog(this);
             }
+
+            RefreshRequestsList();
+        }
+
+        private void BtnNotifications_Click(object sender, EventArgs e)
+        {
+            using (var notifications = new NotificationForm())
+            {
+                notifications.ShowDialog(this);
+            }
+
+            UpdateNotificationBell();
+        }
+
+        private void MenuMunicipalDesk_Click(object sender, EventArgs e)
+        {
+            if (MunicipalDesk.IsOpen)
+            {
+                MessageBox.Show(
+                    this,
+                    "The municipal desk is already open for this session. You can publish an announcement from Local Events, and update a report from its details.",
+                    "Municipal desk",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            if (MunicipalDesk.TryOpen(this))
+            {
+                MessageBox.Show(
+                    this,
+                    "The desk is open. Publish a notice from Local Events, or open a community report and set it to Pending, In Progress, or Resolved.",
+                    "Municipal desk",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+        }
+
+        private void NotificationCentre_Changed()
+        {
+            if (IsHandleCreated && InvokeRequired)
+            {
+                BeginInvoke(new Action(UpdateNotificationBell));
+                return;
+            }
+
+            UpdateNotificationBell();
+        }
+
+        private void UpdateNotificationBell()
+        {
+            if (lblNotificationBadge == null)
+            {
+                return;
+            }
+
+            int unread = NotificationCentre.Instance.UnreadCount;
+            lblNotificationBadge.Visible = unread > 0;
+            lblNotificationBadge.Text = unread > 9 ? "9+" : unread.ToString();
         }
 
         private void LvRequests_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
@@ -521,59 +618,7 @@ namespace MunicipalServicesApp.Forms
 
         private static void DrawStatusBadge(Graphics graphics, Rectangle cellBounds, string status)
         {
-            Color backColor;
-            Color foreColor;
-
-            switch (status)
-            {
-                case "Resolved":
-                    backColor = Color.FromArgb(219, 234, 254);
-                    foreColor = Color.FromArgb(30, 64, 175);
-                    break;
-                case "Closed":
-                    backColor = Color.FromArgb(229, 231, 235);
-                    foreColor = Color.FromArgb(75, 85, 99);
-                    break;
-                default:
-                    backColor = Color.FromArgb(254, 243, 199);
-                    foreColor = Color.FromArgb(146, 64, 14);
-                    break;
-            }
-
-            Size textSize = TextRenderer.MeasureText(status, TableBadgeFont);
-            int badgeWidth = Math.Max(84, textSize.Width + 20);
-            int badgeHeight = 22;
-            var badgeRect = new Rectangle(
-                cellBounds.X + 8,
-                cellBounds.Y + Math.Max(4, (cellBounds.Height - badgeHeight) / 2),
-                badgeWidth,
-                badgeHeight);
-
-            using (var path = RoundedRect(badgeRect, badgeHeight / 2))
-            using (var brush = new SolidBrush(backColor))
-            {
-                graphics.FillPath(brush, path);
-            }
-
-            TextRenderer.DrawText(
-                graphics,
-                status,
-                TableBadgeFont,
-                badgeRect,
-                foreColor,
-                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-        }
-
-        private static GraphicsPath RoundedRect(Rectangle bounds, int radius)
-        {
-            int d = Math.Max(2, radius * 2);
-            var path = new GraphicsPath();
-            path.AddArc(bounds.X, bounds.Y, d, d, 180, 90);
-            path.AddArc(bounds.Right - d, bounds.Y, d, d, 270, 90);
-            path.AddArc(bounds.Right - d, bounds.Bottom - d, d, d, 0, 90);
-            path.AddArc(bounds.X, bounds.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            return path;
+            StatusBadge.Draw(graphics, cellBounds, status, TableBadgeFont);
         }
     }
 }

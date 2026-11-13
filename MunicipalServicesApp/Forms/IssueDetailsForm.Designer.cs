@@ -26,6 +26,11 @@ namespace MunicipalServicesApp.Forms
         private Button btnOpenAttachment;
         private PictureBox picAttachment;
         private Button btnClose;
+        private Panel pnlStatus;
+        private Label lblStatusUpdate;
+        private Button btnPending;
+        private Button btnInProgress;
+        private Button btnResolved;
 
         protected override void Dispose(bool disposing)
         {
@@ -65,6 +70,11 @@ namespace MunicipalServicesApp.Forms
             btnOpenAttachment = new Button();
             picAttachment = new PictureBox();
             btnClose = new Button();
+            pnlStatus = new Panel();
+            lblStatusUpdate = new Label();
+            btnPending = new Button();
+            btnInProgress = new Button();
+            btnResolved = new Button();
             pnlHeader.SuspendLayout();
             pnlBody.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picAttachment).BeginInit();
@@ -96,7 +106,6 @@ namespace MunicipalServicesApp.Forms
             pnlBody.Dock = DockStyle.Fill;
             pnlBody.Name = "pnlBody";
             pnlBody.Padding = new Padding(24, 16, 24, 16);
-            pnlBody.Controls.Add(btnClose);
             pnlBody.Controls.Add(picAttachment);
             pnlBody.Controls.Add(btnOpenAttachment);
             pnlBody.Controls.Add(lblAttachmentName);
@@ -234,25 +243,46 @@ namespace MunicipalServicesApp.Forms
             picAttachment.SizeMode = PictureBoxSizeMode.Zoom;
             picAttachment.Visible = false;
 
-            btnClose.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            StyleStatusButton(btnPending, "Pending", new Point(16, 36));
+            StyleStatusButton(btnInProgress, "In Progress", new Point(130, 36));
+            StyleStatusButton(btnResolved, "Resolved", new Point(244, 36));
+
+            btnClose.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnClose.BackColor = navy;
             btnClose.Cursor = Cursors.Hand;
             btnClose.FlatAppearance.BorderSize = 0;
             btnClose.FlatStyle = FlatStyle.Flat;
             btnClose.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             btnClose.ForeColor = Color.White;
-            btnClose.Location = new Point(400, 604);
+            btnClose.Location = new Point(424, 32);
             btnClose.Name = "btnClose";
-            btnClose.Size = new Size(160, 36);
+            btnClose.Size = new Size(150, 34);
             btnClose.Text = "Close";
             btnClose.UseVisualStyleBackColor = false;
             btnClose.Click += BtnClose_Click;
+
+            lblStatusUpdate.AutoSize = true;
+            lblStatusUpdate.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblStatusUpdate.ForeColor = muted;
+            lblStatusUpdate.Location = new Point(24, 8);
+            lblStatusUpdate.Text = "Municipal desk — set status";
+
+            pnlStatus.BackColor = Color.FromArgb(248, 249, 250);
+            pnlStatus.Controls.Add(lblStatusUpdate);
+            pnlStatus.Controls.Add(btnPending);
+            pnlStatus.Controls.Add(btnInProgress);
+            pnlStatus.Controls.Add(btnResolved);
+            pnlStatus.Controls.Add(btnClose);
+            pnlStatus.Dock = DockStyle.Bottom;
+            pnlStatus.Height = 80;
+            pnlStatus.Name = "pnlStatus";
 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(600, 660);
             Controls.Add(pnlBody);
+            Controls.Add(pnlStatus);
             Controls.Add(pnlHeader);
             Font = new Font("Segoe UI", 10F);
             MinimizeBox = false;
@@ -267,6 +297,22 @@ namespace MunicipalServicesApp.Forms
             pnlBody.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)picAttachment).EndInit();
             ResumeLayout(false);
+        }
+
+        private void StyleStatusButton(Button button, string status, Point location)
+        {
+            button.BackColor = Color.White;
+            button.Cursor = Cursors.Hand;
+            button.FlatAppearance.BorderColor = Color.FromArgb(26, 54, 93);
+            button.FlatStyle = FlatStyle.Flat;
+            button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            button.ForeColor = Color.FromArgb(26, 54, 93);
+            button.Location = location;
+            button.Size = new Size(108, 32);
+            button.Tag = status;
+            button.Text = status;
+            button.UseVisualStyleBackColor = false;
+            button.Click += BtnSetStatus_Click;
         }
     }
 }
