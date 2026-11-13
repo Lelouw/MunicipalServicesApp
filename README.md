@@ -98,7 +98,7 @@ Compiled executable:
 11. The sample desk codes are `JOZI-DESK`, `SANDTON-01`, `SOWETO-02`, and `CBD-03` (`MunicipalDeskCodes` in `App.config`).
 12. **Service Status** asks whether you are a resident or at the service desk.
     - **Resident**: track a reference such as `5` or `MSR-2026-0005`. You can read the history. You cannot change a status.
-    - **Service desk**: enter a code from the list. **Update**, next to Urgency, opens the confirmation and moves that request one step.
+    - **Service desk**: enter a code from the list. The list is then filtered to that desk. `JOZI-DESK` shows Jozi. `SANDTON-01` shows Sandton. `SOWETO-02` shows Soweto. `CBD-03` shows Johannesburg CBD. **Update**, next to Urgency, opens the confirmation and moves that request one step.
 13. Open a community report from the eye icon and set **Pending**, **In Progress**, or **Resolved**. That path also asks for the desk.
 14. The **bell** shows notices for reports submitted on this computer. You can also type a reference and watch it. No account is created.
 

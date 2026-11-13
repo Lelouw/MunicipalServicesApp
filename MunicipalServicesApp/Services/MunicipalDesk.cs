@@ -41,10 +41,15 @@ namespace MunicipalServicesApp.Services
 
         public static bool Matches(string entered)
         {
+            return Canonical(entered) != null;
+        }
+
+        public static string Canonical(string entered)
+        {
             string typed = (entered ?? string.Empty).Trim();
             if (typed.Length == 0)
             {
-                return false;
+                return null;
             }
 
             IList<string> codes = Codes();
@@ -52,11 +57,54 @@ namespace MunicipalServicesApp.Services
             {
                 if (string.Equals(codes[i], typed, StringComparison.OrdinalIgnoreCase))
                 {
-                    return true;
+                    return codes[i];
                 }
             }
 
-            return false;
+            return null;
+        }
+
+        public static DeskScope ScopeFor(string code)
+        {
+            string canonical = Canonical(code);
+            if (canonical == null)
+            {
+                return null;
+            }
+
+            if (string.Equals(canonical, "SANDTON-01", StringComparison.OrdinalIgnoreCase))
+            {
+                return new DeskScope(canonical, "Sandton", "Sandton", "Rivonia", "Grayston");
+            }
+
+            if (string.Equals(canonical, "SOWETO-02", StringComparison.OrdinalIgnoreCase))
+            {
+                return new DeskScope(canonical, "Soweto", "Soweto", "Vilakazi", "Orlando");
+            }
+
+            if (string.Equals(canonical, "CBD-03", StringComparison.OrdinalIgnoreCase))
+            {
+                return new DeskScope(canonical, "Johannesburg CBD", "Johannesburg CBD", "Joubert", "Braamfontein", "Hillbrow", "Constitution Hill", "Mary Fitzgerald");
+            }
+
+            return new DeskScope(
+                canonical,
+                "Jozi",
+                "Jozi",
+                "Rosebank",
+                "Alexandra",
+                "Roodepoort",
+                "Midrand",
+                "Tembisa",
+                "Kempton Park",
+                "Kempton",
+                "Randburg",
+                "Parkview",
+                "Emmarentia",
+                "Zoo Lake",
+                "Delta Park",
+                "Botanical",
+                "Ivory Park");
         }
 
         public static IList<string> Codes()
@@ -106,6 +154,83 @@ namespace MunicipalServicesApp.Services
                     codes.Add(code);
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// The area a desk code is allowed to see. JOZI-DESK is the rest of the city.
+    /// Sandton, Soweto, and the CBD each have their own code.
+    /// </summary>
+    public sealed class DeskScope
+    {
+        private readonly string[] places;
+
+        public DeskScope(string code, string label, params string[] places)
+        {
+            Code = code;
+            Label = label;
+            this.places = places ?? new string[0];
+        }
+
+        public string Code { get; private set; }
+
+        public string Label { get; private set; }
+
+        public bool Includes(string area, string location)
+        {
+            string text = ((area ?? string.Empty) + " " + (location ?? string.Empty)).Trim();
+            if (text.Length == 0)
+            {
+                return false;
+            }
+
+            if (IsJoziDesk() && BelongsToSpecialistDesk(text))
+            {
+                return false;
+            }
+
+            for (int i = 0; i < places.Length; i++)
+            {
+                if (text.IndexOf(places[i], StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            if (IsJoziDesk() &&
+                text.IndexOf("Johannesburg", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                text.IndexOf("CBD", StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsJoziDesk()
+        {
+            return string.Equals(Code, "JOZI-DESK", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool BelongsToSpecialistDesk(string text)
+        {
+            return Contains(text, "Sandton") ||
+                   Contains(text, "Rivonia") ||
+                   Contains(text, "Grayston") ||
+                   Contains(text, "Soweto") ||
+                   Contains(text, "Vilakazi") ||
+                   Contains(text, "Orlando") ||
+                   Contains(text, "Johannesburg CBD") ||
+                   Contains(text, "Joubert") ||
+                   Contains(text, "Braamfontein") ||
+                   Contains(text, "Hillbrow") ||
+                   Contains(text, "Constitution Hill") ||
+                   Contains(text, "Mary Fitzgerald");
+        }
+
+        private static bool Contains(string text, string place)
+        {
+            return text.IndexOf(place, StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 }

@@ -151,6 +151,11 @@ namespace MunicipalServicesApp.Services
 
         public IList<ServiceRequestView> List(RequestListOrder order, GeneralTreeNode<CatalogueItem> categoryNode, string text)
         {
+            return List(order, categoryNode, text, null);
+        }
+
+        public IList<ServiceRequestView> List(RequestListOrder order, GeneralTreeNode<CatalogueItem> categoryNode, string text, DeskScope desk)
+        {
             IList<string> ordered = IdsInOrder(order);
             HashSet<string> allowed = null;
             if (categoryNode != null && categoryNode != catalogue.Root)
@@ -168,6 +173,11 @@ namespace MunicipalServicesApp.Services
                 }
 
                 ServiceRequestView view = ToView(byId[ordered[i]]);
+                if (desk != null && !desk.Includes(view.Area, view.Report.Location))
+                {
+                    continue;
+                }
+
                 if (needle != null && !Matches(view, needle))
                 {
                     continue;
@@ -179,12 +189,44 @@ namespace MunicipalServicesApp.Services
             return views;
         }
 
+        public bool IsOnDesk(string requestId, DeskScope desk)
+        {
+            if (desk == null)
+            {
+                return true;
+            }
+
+            IssueReport report;
+            if (string.IsNullOrWhiteSpace(requestId) || !byId.TryGetValue(requestId, out report))
+            {
+                return false;
+            }
+
+            ServiceRequestProfile profile;
+            if (!profiles.TryGetValue(requestId, out profile))
+            {
+                return false;
+            }
+
+            return desk.Includes(profile.Area, report.Location);
+        }
+
         public IList<ServiceRequestView> UrgentQueue()
+        {
+            return UrgentQueue(null);
+        }
+
+        public IList<ServiceRequestView> UrgentQueue(DeskScope desk)
         {
             IList<string> ids = urgency.ToPriorityOrder();
             var views = new List<ServiceRequestView>(ids.Count);
             for (int i = 0; i < ids.Count; i++)
             {
+                if (desk != null && !IsOnDesk(ids[i], desk))
+                {
+                    continue;
+                }
+
                 views.Add(ToView(byId[ids[i]]));
             }
 

@@ -18,7 +18,7 @@ namespace MunicipalServicesApp.Forms
             MinimizeBox = false;
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new Size(460, 250);
+            ClientSize = new Size(460, 268);
             BackColor = Color.White;
             Font = UITheme.BodyFont;
 
@@ -76,10 +76,10 @@ namespace MunicipalServicesApp.Forms
 
             var hint = new Label
             {
-                Text = "The sample code for this assignment is JOZI-DESK.",
+                Text = "JOZI-DESK shows Jozi only. SANDTON-01, SOWETO-02, and CBD-03 show their own area.",
                 ForeColor = UITheme.Muted,
                 Location = new Point(24, 204),
-                Size = new Size(412, 22)
+                Size = new Size(412, 36)
             };
 
             AcceptButton = btnUnlock;

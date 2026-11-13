@@ -93,7 +93,7 @@ namespace MunicipalServicesApp.Forms
             pnlCode.Controls.Add(txtCode);
             pnlCode.Controls.Add(new Label
             {
-                Text = "Checked against the desk list. Sample code: JOZI-DESK",
+                Text = "JOZI-DESK shows Jozi. The other codes show their own area.",
                 ForeColor = UITheme.Muted,
                 Location = new Point(0, 54),
                 Size = new Size(500, 20)
@@ -132,6 +132,8 @@ namespace MunicipalServicesApp.Forms
 
         public bool AsServiceDesk { get; private set; }
 
+        public string DeskCode { get; private set; }
+
         private void BtnContinue_Click(object sender, EventArgs e)
         {
             if (!asDesk)
@@ -151,6 +153,7 @@ namespace MunicipalServicesApp.Forms
             }
 
             AsServiceDesk = true;
+            DeskCode = MunicipalDesk.Canonical(txtCode.Text);
             DialogResult = DialogResult.OK;
             Close();
         }

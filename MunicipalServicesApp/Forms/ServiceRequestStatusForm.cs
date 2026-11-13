@@ -17,6 +17,7 @@ namespace MunicipalServicesApp.Forms
         private readonly ServiceRequestCatalogue catalogue;
         private readonly ToolTip tips = new ToolTip();
         private readonly bool serviceDesk;
+        private readonly DeskScope deskScope;
         private bool screenReady;
         private string selectedId;
         private GeneralTreeNode<CatalogueItem> selectedCategory;
@@ -29,8 +30,14 @@ namespace MunicipalServicesApp.Forms
         private static readonly Font BadgeFont = new Font("Segoe UI Semibold", 8.5F, FontStyle.Bold);
 
         public ServiceRequestStatusForm(bool serviceDesk)
+            : this(serviceDesk, null)
+        {
+        }
+
+        public ServiceRequestStatusForm(bool serviceDesk, string deskCode)
         {
             this.serviceDesk = serviceDesk;
+            deskScope = serviceDesk ? MunicipalDesk.ScopeFor(deskCode) : null;
             InitializeComponent();
             try
             {
@@ -51,7 +58,9 @@ namespace MunicipalServicesApp.Forms
             btnAdvance.Visible = false;
             btnAdvance.Dock = DockStyle.None;
             lblSubtitle.Text = serviceDesk
-                ? "Service desk. Use Action to move a request to the next status."
+                ? (deskScope == null
+                    ? "Service desk. Use Action to move a request to the next status."
+                    : deskScope.Label + " desk. This list is filtered to " + deskScope.Label + ". Use Action to move a request.")
                 : "Resident view. You can track a request. Only the service desk can change a status.";
             tips.SetToolTip(btnTrack, "Looks the reference up in the binary search tree and shows the path.");
             tips.SetToolTip(cmbOrder, "Each choice reads a different index. The filter only hides rows.");
@@ -61,7 +70,14 @@ namespace MunicipalServicesApp.Forms
             rowImages.ImageSize = new Size(1, 34);
             lvRequests.SmallImageList = rowImages;
             SetPlaceholder(txtTrack, TrackPlaceholder);
-            SetPlaceholder(txtFilter, FilterPlaceholder);
+            if (deskScope == null)
+            {
+                SetPlaceholder(txtFilter, FilterPlaceholder);
+            }
+            else
+            {
+                LockDeskFilter();
+            }
             txtTrack.KeyDown += TxtTrack_KeyDown;
             txtFilter.TextChanged += TxtFilter_TextChanged;
             BuildCatalogue();
@@ -92,6 +108,14 @@ namespace MunicipalServicesApp.Forms
 
             string input = IsPlaceholder(txtTrack) ? string.Empty : txtTrack.Text;
             TrackResult result = catalogue.Track(input);
+            if (result.Found && deskScope != null && result.Request != null &&
+                !deskScope.Includes(result.Request.Area, result.Request.Report.Location))
+            {
+                lblTrackResult.Text = RequestReference.Display(result.Request.Report.RequestId) +
+                                      " is not on the " + deskScope.Label + " desk.";
+                return;
+            }
+
             lblTrackResult.Text = result.Message;
             if (!result.Found)
             {
@@ -101,7 +125,10 @@ namespace MunicipalServicesApp.Forms
             screenReady = false;
             selectedCategory = catalogue.Catalogue.Root;
             SelectTreeNode(tvCategories.Nodes, catalogue.Catalogue.Root);
-            SetPlaceholder(txtFilter, FilterPlaceholder);
+            if (deskScope == null)
+            {
+                SetPlaceholder(txtFilter, FilterPlaceholder);
+            }
             screenReady = true;
             selectedId = result.Request.Report.RequestId;
             BindList();
@@ -241,7 +268,11 @@ namespace MunicipalServicesApp.Forms
                 return;
             }
 
-            int count = catalogue.Catalogue.CountRequests(source);
+            int count = CountOnThisDesk(source);
+            if (deskScope != null && count == 0)
+            {
+                return;
+            }
             var node = new TreeNode(source.Value.Name + " (" + count.ToString() + ")");
             node.Tag = source;
             if (parent == null)
@@ -269,8 +300,8 @@ namespace MunicipalServicesApp.Forms
             string keep = selectedId;
             screenReady = false;
             lvRequests.Items.Clear();
-            string filter = IsPlaceholder(txtFilter) ? string.Empty : txtFilter.Text;
-            IList<ServiceRequestView> rows = catalogue.List(CurrentOrder(), selectedCategory, filter);
+            string filter = DeskFilterText();
+            IList<ServiceRequestView> rows = catalogue.List(CurrentOrder(), selectedCategory, filter, deskScope);
             for (int i = 0; i < rows.Count; i++)
             {
                 ServiceRequestView view = rows[i];
@@ -377,7 +408,7 @@ namespace MunicipalServicesApp.Forms
         private void BindUrgent()
         {
             lvUrgent.Items.Clear();
-            IList<ServiceRequestView> queue = catalogue.UrgentQueue();
+            IList<ServiceRequestView> queue = catalogue.UrgentQueue(deskScope);
             for (int i = 0; i < queue.Count; i++)
             {
                 ServiceRequestView view = queue[i];
@@ -860,6 +891,47 @@ namespace MunicipalServicesApp.Forms
             path.AddArc(bounds.X, bounds.Bottom - diameter, diameter, diameter, 90, 90);
             path.CloseFigure();
             return path;
+        }
+
+        private void LockDeskFilter()
+        {
+            txtFilter.TextChanged -= TxtFilter_TextChanged;
+            txtFilter.ReadOnly = true;
+            txtFilter.Text = deskScope.Label;
+            txtFilter.ForeColor = UITheme.Text;
+            txtFilter.Tag = null;
+            txtFilter.TextChanged += TxtFilter_TextChanged;
+            tips.SetToolTip(txtFilter, "This desk code only shows " + deskScope.Label + ".");
+        }
+
+        private string DeskFilterText()
+        {
+            if (deskScope != null)
+            {
+                return string.Empty;
+            }
+
+            return IsPlaceholder(txtFilter) ? string.Empty : txtFilter.Text;
+        }
+
+        private int CountOnThisDesk(GeneralTreeNode<CatalogueItem> source)
+        {
+            IList<string> ids = catalogue.Catalogue.RequestIds(source);
+            if (deskScope == null)
+            {
+                return ids.Count;
+            }
+
+            int count = 0;
+            for (int i = 0; i < ids.Count; i++)
+            {
+                if (catalogue.IsOnDesk(ids[i], deskScope))
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private void SetPlaceholder(TextBox box, string placeholder)

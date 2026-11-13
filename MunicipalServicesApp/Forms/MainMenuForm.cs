@@ -94,7 +94,7 @@ namespace MunicipalServicesApp.Forms
                     return;
                 }
 
-                using (var statusForm = new ServiceRequestStatusForm(access.AsServiceDesk))
+                using (var statusForm = new ServiceRequestStatusForm(access.AsServiceDesk, access.DeskCode))
                 {
                     statusForm.ShowDialog(this);
                 }
